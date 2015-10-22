@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elopio/go-subunit"
+	"github.com/testing-cabal/subunit-go"
 
 	check "gopkg.in/check.v1"
 )
