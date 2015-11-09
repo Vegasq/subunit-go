@@ -251,8 +251,7 @@ func writeNumber(b io.Writer, num int) (err error) {
 	case num < 1073741824: // 2^(32-2):
 		// Fits in four bytes.
 		// Set the size to 11.
-		var size uint32 = 0xc0000000
-		binary.Write(b, binary.BigEndian, uint32(num)|size)
+		binary.Write(b, binary.BigEndian, uint32(num)|0xc0000000)
 	default:
 		err = &ErrNumber{num}
 	}
