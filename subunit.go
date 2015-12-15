@@ -89,6 +89,8 @@ func makeLen(baseLen int) (length int, err error) {
 
 // ResultStreamer is an interface for the StreamResult API that streams tests status.
 type ResultStreamer interface {
+	StartTestRun() error
+	StopTestRun() error
 	Status(Event) error
 }
 
@@ -267,4 +269,16 @@ func writeNumber(b io.Writer, num int) (err error) {
 // Status informs the result about a test status.
 func (s *StreamResultToBytes) Status(e Event) error {
 	return e.write(s.Output)
+}
+
+// StartTestRun prepares the test result to process result.
+// In StreamResultToBytes no preparation is needed.
+func (s *StreamResultToBytes) StartTestRun() error {
+	return nil
+}
+
+// StopTestRun informs the test result that no more test updates will be received.
+// In StreamResultToBytes no close up is needed.
+func (s *StreamResultToBytes) StopTestRun() error {
+	return nil
 }
