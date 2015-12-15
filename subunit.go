@@ -87,6 +87,11 @@ func makeLen(baseLen int) (length int, err error) {
 	return length, err
 }
 
+// ResultStreamer is an interface for the StreamResult API that streams tests status.
+type ResultStreamer interface {
+	Status(Event) error
+}
+
 // StreamResultToBytes is an implementation of the StreamResult API that converts calls to bytes.
 type StreamResultToBytes struct {
 	Output io.Writer
