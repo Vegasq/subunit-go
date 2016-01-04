@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
+	"sync"
 	"time"
 )
 
@@ -66,6 +67,7 @@ var status = map[string]byte{
 	"fail":       0x6,
 	"xfail":      0x7,
 }
+var m sync.Mutex
 
 func makeLen(baseLen int) (length int, err error) {
 	length = baseLen + 4 // Add the length of the CRC32.
@@ -151,7 +153,8 @@ func (e *Event) write(writer io.Writer) error {
 	// Add the CRC32
 	crc := crc32.ChecksumIEEE(b.Bytes())
 	binary.Write(&b, binary.BigEndian, crc)
-
+	m.Lock()
+	defer m.Unlock()
 	_, err = writer.Write(b.Bytes())
 	return err
 }
