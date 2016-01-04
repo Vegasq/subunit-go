@@ -154,8 +154,8 @@ func (e *Event) write(writer io.Writer) error {
 	crc := crc32.ChecksumIEEE(b.Bytes())
 	binary.Write(&b, binary.BigEndian, crc)
 	m.Lock()
+	defer m.Unlock()
 	_, err = writer.Write(b.Bytes())
-	m.Unlock()
 	return err
 }
 
