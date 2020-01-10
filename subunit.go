@@ -56,6 +56,7 @@ const (
 	// Flags low byte
 	fileContentPresent byte = 0x40
 	mimePresent        byte = 0x20
+	tags               byte = 0x80
 )
 
 var status = map[string]byte{
@@ -109,6 +110,7 @@ type Event struct {
 	FileName  string
 	FileBytes []byte
 	MIME      string
+	Tags      string
 }
 
 type packetPart struct {
@@ -135,12 +137,15 @@ func (e *Event) write(writer io.Writer) error {
 	fileContentChan := make(chan packetPart)
 	go e.makeFileContent(fileContentChan)
 
+	tagsChan := make(chan packetPart)
+	go e.makeTags(tagsChan)
+
 	// We construct a temporary buffer because we won't know the length until it's finished.
 	// Then we insert the length.
 	var bTemp bytes.Buffer
 	bTemp.WriteByte(signature)
 	bTemp.Write(<-flagsChan)
-	for _, part := range []packetPart{<-timestampChan, <-idChan, <-mimeChan, <-fileContentChan} {
+	for _, part := range []packetPart{<-timestampChan, <-idChan, <-tagsChan, <-mimeChan, <-fileContentChan} {
 		if part.err != nil {
 			return part.err
 		}
@@ -178,6 +183,9 @@ func (e *Event) makeFlags(c chan<- []byte) {
 	if e.FileName != "" {
 		flags[1] = flags[1] | fileContentPresent
 	}
+	if e.Tags != "" {
+		flags[1] = flags[1] | tags
+	}
 	if e.MIME != "" {
 		flags[1] = flags[1] | mimePresent
 	}
@@ -213,6 +221,15 @@ func (e *Event) makeMIME(c chan<- packetPart) {
 		err = writeUTF8(&mime, e.MIME)
 	}
 	c <- packetPart{mime.Bytes(), err}
+}
+
+func (e *Event) makeTags(c chan<- packetPart) {
+	var tags bytes.Buffer
+	var err error
+	if e.Tags != "" {
+		err = writeUTF8(&tags, e.Tags)
+	}
+	c <- packetPart{tags.Bytes(), err}
 }
 
 func (e *Event) makeFileContent(c chan<- packetPart) {
